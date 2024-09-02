@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,12 +43,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				.loginProcessingUrl("/authenticate") // フォーム認証処理のパス
 				.usernameParameter("userName") // ユーザ名のリクエストパラメータ名
 				.passwordParameter("password") // パスワードのリクエストパラメータ名
-				.defaultSuccessUrl("/home") // 認証成功時に遷移するデフォルトのパス
+				.defaultSuccessUrl("/main") // 認証成功時に遷移するデフォルトのパス
 				.failureUrl("/loginForm?error=true"); // 認証失敗時に遷移するパス
 
 		// ログアウト設定
 		http.logout().logoutSuccessUrl("/loginForm") // ログアウト成功時に遷移するパス
 				.permitAll(); // 全ユーザに対して許可
+	}
+
+	@Override
+	public void configure(WebSecurity web) throws Exception {
+		// 画像、JavaScript、cssは認可の対象外とする
+		web.debug(false).ignoring().antMatchers("/images/**", "/js/**", "/css/**");
 	}
 
 }
