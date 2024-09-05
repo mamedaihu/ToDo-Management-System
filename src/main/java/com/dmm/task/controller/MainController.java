@@ -51,7 +51,7 @@ public class MainController {
 		}
 		
 		//カレンダーのToDo直下に「yyyy年mm月」と表示
-		model.addAttribute("month", day.format(DateTimeFormatter.ofPattern("yyyy年mm月")));
+		model.addAttribute("month", day.format(DateTimeFormatter.ofPattern("yyyy年MM月")));
 		
 		//前月のリンク
 		model.addAttribute("prev", day.minusMonths(1));
@@ -176,7 +176,7 @@ public class MainController {
 		
 		repo.save(task);
 		
-		return "redilect:/main";
+		return "redirect:/main";
 	}
 	
 	//タスク削除用
