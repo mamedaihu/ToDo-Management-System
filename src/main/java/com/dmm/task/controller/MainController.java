@@ -2,6 +2,7 @@ package com.dmm.task.controller;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class MainController {
 	
 	//カレンダー表示
 	@GetMapping("/main")
-	public String main(Model model, @AuthenticationPrincipal AccountUserDetails user) {
+	public String main(Model model, @AuthenticationPrincipal AccountUserDetails user, @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
 		//	週と日を格納する二次元配列を用意する
 		List<List<LocalDate>> month = new ArrayList<>();
 		
@@ -39,9 +40,24 @@ public class MainController {
 		//日にちを格納する変数を用意する
 		LocalDate day, start, end;
 		
-		//その月の1日を取得する
-		day = LocalDate.now(); //現在日時を取得
-		day = LocalDate.of(day.getYear(), day.getMonthValue(), 1); //現在日時からその月の1日を取得
+		//今月 or 前月 or 翌月を判断
+		if (date == null) {
+			//その月の1日を取得する
+			day = LocalDate.now(); //現在日時を取得
+			day = LocalDate.of(day.getYear(), day.getMonthValue(), 1);
+		//現在日時からその月の１日を取得
+		} else {
+			day = date; //引数で受け取った日付をそのまま使う
+		}
+		
+		//カレンダーのToDo直下に「yyyy年mm月」と表示
+		model.addAttribute("month", day.format(DateTimeFormatter.ofPattern("yyyy年mm月")));
+		
+		//前月のリンク
+		model.addAttribute("prev", day.minusMonths(1));
+		
+		//翌月のリンク
+		model.addAttribute("next", day.plusMonths(1));
 		
 		//前月分のLocalDateを求める
 		DayOfWeek w = day.getDayOfWeek(); //当該日の曜日を取得
@@ -60,7 +76,11 @@ public class MainController {
 		week = new ArrayList<>(); //次週のリストを新しく作る
 		
 		//2週目（「7」から始めているのは2週目だから）
-		for(int i = 7; i <= day.lengthOfMonth(); i++) {
+		int leftOfMonth = day.lengthOfMonth() - day.getDayOfMonth();
+		leftOfMonth = day.lengthOfMonth() - leftOfMonth;
+		leftOfMonth = 7 - leftOfMonth;
+		
+		for(int i = 7; i <= day.lengthOfMonth() + leftOfMonth; i++) {
 			week.add(day); //週のリストへ格納
 			
 			w = day.getDayOfWeek();
@@ -73,11 +93,17 @@ public class MainController {
 		}
 		
 		//最終週の翌日分
-		w = day.getDayOfWeek();
-		for(int i = 1; i < 7 - w.getValue(); i++) {
+		DayOfWeek endofmonth = day.getDayOfWeek();
+		int next = 7 - endofmonth.getValue();
+		if (next == 0) {
+			next = 7;
+		}
+		
+		for(int n = 1; n <= next; n++) {
 			week.add(day);
 			day = day.plusDays(1);
 		}
+		month.add(week);
 		
 		end = day;
 		
@@ -128,7 +154,40 @@ public class MainController {
 		return "redirect:/main";
 	}
 	
+	//タスク編集画面表示用
+	@GetMapping("/main/edit/{id}")
+	public String edit(Model model, @PathVariable Integer id) {
+		Tasks task = repo.getById(id);
+		model.addAttribute("task", task);
+		return "edit";
+	}
 	
+	//タスク編集用
+	@PostMapping("/main/edit/{id}")
+	public String editPost(Model model, TaskForm form, @PathVariable Integer id, @AuthenticationPrincipal AccountUserDetails user) {
+		Tasks task = new Tasks();
+		task.setId(id);
+		
+		task.setName(user.getName());
+		task.setTitle(form.getTitle());
+		task.setText(form.getText());
+		task.setDate(form.getDate().atTime(0, 0));
+		task.setDone(form.isDone());
+		
+		repo.save(task);
+		
+		return "redilect:/main";
+	}
 	
+	//タスク削除用
+	@PostMapping("/main/delete/{id}")
+	public String deletePost(Model model, TaskForm form, @PathVariable Integer id) {
+		Tasks task = new Tasks();
+		task.setId(id);
+		
+		repo.delete(task);
+		
+		return "redilect:/main";
+	}
 
 }
