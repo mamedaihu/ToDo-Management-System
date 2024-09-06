@@ -140,7 +140,7 @@ public class MainController {
 		model.addAttribute("tasks", tasks);
 		
 		//HTML表示
-		return "login";
+		return "main";
 	}
 	
 	//タスク登録用の表示画面
