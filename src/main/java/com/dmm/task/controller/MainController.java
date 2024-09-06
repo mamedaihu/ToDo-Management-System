@@ -76,6 +76,7 @@ public class MainController {
 		week = new ArrayList<>(); //次週のリストを新しく作る
 		
 		//2週目（「7」から始めているのは2週目だから）
+		int currentMonth = day.getMonthValue();
 		int leftOfMonth = day.lengthOfMonth() - day.getDayOfMonth();
 		leftOfMonth = day.lengthOfMonth() - leftOfMonth;
 		leftOfMonth = 7 - leftOfMonth;
@@ -90,13 +91,20 @@ public class MainController {
 			}
 			
 			day = day.plusDays(1); //1日進める
+		
+		if (currentMonth != day.getMonthValue()) {
+			//翌月になったら抜ける
+			break;
 		}
+	}
 		
 		//最終週の翌日分
-		DayOfWeek endofmonth = day.getDayOfWeek();
-		int next = 7 - endofmonth.getValue();
-		if (next == 0) {
-			next = 7;
+		w = day.getDayOfWeek();
+		if (w != DayOfWeek.SUNDAY) {
+			DayOfWeek endofmonth = day.getDayOfWeek();
+			int next = 7 - endofmonth.getValue();
+			if (next == 0) {
+				next = 7;
 		}
 		
 		for(int n = 1; n <= next; n++) {
@@ -104,6 +112,7 @@ public class MainController {
 			day = day.plusDays(1);
 		}
 		month.add(week);
+	}
 		
 		end = day;
 		
