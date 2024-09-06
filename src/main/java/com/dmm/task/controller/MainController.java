@@ -187,7 +187,7 @@ public class MainController {
 		
 		repo.delete(task);
 		
-		return "redilect:/main";
+		return "redirect:/main";
 	}
 
 }
